@@ -1,0 +1,32 @@
+package service
+
+import (
+    "{{.PackagePath}}/models"
+    "{{.PackagePath}}/interfaces"
+)
+
+type {{.Name}}Service struct {
+    repo interfaces.{{.Name}}Repository
+}
+
+func New{{.Name}}Service(repo interfaces.{{.Name}}Repository) interfaces.{{.Name}}Service {
+    return &{{.Name}}Service{
+        repo: repo,
+    }
+}
+
+func (s *{{.Name}}Service) Create{{.Name}}({{.LowerName}} *models.{{.Name}}) error {
+    return s.repo.Create({{.LowerName}})
+}
+
+func (s *{{.Name}}Service) Get{{.Name}}ByID(id uint) (*models.{{.Name}}, error) {
+    return s.repo.FindByID(id)
+}
+
+func (s *{{.Name}}Service) Update{{.Name}}({{.LowerName}} *models.{{.Name}}) error {
+    return s.repo.Update({{.LowerName}})
+}
+
+func (s *{{.Name}}Service) Delete{{.Name}}(id uint) error {
+    return s.repo.Delete(id)
+}

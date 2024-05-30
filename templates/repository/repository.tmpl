@@ -1,0 +1,34 @@
+package repository
+
+import (
+    "{{.PackagePath}}/models"
+    "{{.PackagePath}}/interfaces"
+)
+
+type {{.Name}}Repository struct {
+    // Tambahkan koneksi database atau dependency lainnya
+}
+
+func New{{.Name}}Repository() interfaces.{{.Name}}Repository {
+    return &{{.Name}}Repository{}
+}
+
+func (repo *{{.Name}}Repository) Create({{.LowerName}} *models.{{.Name}}) error {
+    // Implementasi untuk membuat record
+    return nil
+}
+
+func (repo *{{.Name}}Repository) FindByID(id uint) (*models.{{.Name}}, error) {
+    // Implementasi untuk menemukan record berdasarkan ID
+    return nil, nil
+}
+
+func (repo *{{.Name}}Repository) Update({{.LowerName}} *models.{{.Name}}) error {
+    // Implementasi untuk mengupdate record
+    return nil
+}
+
+func (repo *{{.Name}}Repository) Delete(id uint) error {
+    // Implementasi untuk menghapus record
+    return nil
+}

@@ -1,0 +1,27 @@
+package interfaces
+
+import (
+    "{{.PackagePath}}/models"
+   "github.com/gofiber/fiber/v2"
+)
+
+type {{.Name}}Repository interface {
+    Create({{.LowerName}} *models.{{.Name}}) error
+    FindByID(id uint) (*models.{{.Name}}, error)
+    Update({{.LowerName}} *models.{{.Name}}) error
+    Delete(id uint) error
+}
+
+type {{.Name}}Service interface {
+    Create{{.Name}}({{.LowerName}} *models.{{.Name}}) error
+    Get{{.Name}}ByID(id uint) (*models.{{.Name}}, error)
+    Update{{.Name}}({{.LowerName}} *models.{{.Name}}) error
+    Delete{{.Name}}(id uint) error
+}
+
+type {{.Name}}Handler interface {
+    Create(c *fiber.Ctx) error
+    GetByID(c *fiber.Ctx) error
+    Update(c *fiber.Ctx) error
+    Delete(c *fiber.Ctx) error
+}
