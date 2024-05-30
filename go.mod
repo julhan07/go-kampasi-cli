@@ -1,4 +1,4 @@
-module kampasi_cli
+module github.com/julhan07/go-kampasi-cli
 
 go 1.22.2
 
