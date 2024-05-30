@@ -1,4 +1,4 @@
-module cmd-kampasi
+module cmdKampasi
 
 go 1.22.2
 
