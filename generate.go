@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -14,6 +15,15 @@ type TemplateData struct {
 	Name        string
 	LowerName   string
 	PackagePath string
+}
+
+func getGOPATH() (string, error) {
+	cmd := exec.Command("go", "env", "GOPATH")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 func generateFile(templatePath, outputPath string, data TemplateData) error {
@@ -56,7 +66,12 @@ including models, repositories, services, interfaces, and handlers.`,
 		}
 
 		var templatePath, outputPath string
-		gopath := os.Getenv("GOPATH")
+		gopath, err := getGOPATH()
+		if err != nil {
+			fmt.Println("Error getting GOPATH:", err)
+			return
+		}
+
 		if gopath == "" {
 			fmt.Println("GOPATH is not set")
 			return
@@ -64,19 +79,19 @@ including models, repositories, services, interfaces, and handlers.`,
 
 		switch typeName {
 		case "model":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "models", "model.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "models", "model.tmpl")
 			outputPath = filepath.Join("models", fmt.Sprintf("%s.go", lowerName))
 		case "repository":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "repository", "repository.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "repository", "repository.tmpl")
 			outputPath = filepath.Join("repository", fmt.Sprintf("%s_repository.go", lowerName))
 		case "service":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "service", "service.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "service", "service.tmpl")
 			outputPath = filepath.Join("service", fmt.Sprintf("%s_service.go", lowerName))
 		case "interface":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "interface", "interface.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "interface", "interface.tmpl")
 			outputPath = filepath.Join("interfaces", fmt.Sprintf("%s_interface.go", lowerName))
 		case "handler":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "handler", "handler.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "handler", "handler.tmpl")
 			outputPath = filepath.Join("handlers", fmt.Sprintf("%s_handler.go", lowerName))
 		default:
 			fmt.Println("Invalid type. Must be one of: model, repository, service, interface, handler")
