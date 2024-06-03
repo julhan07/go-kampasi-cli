@@ -56,21 +56,27 @@ including models, repositories, services, interfaces, and handlers.`,
 		}
 
 		var templatePath, outputPath string
+		gopath := os.Getenv("GOPATH")
+		if gopath == "" {
+			fmt.Println("GOPATH is not set")
+			return
+		}
+
 		switch typeName {
 		case "model":
-			templatePath = filepath.Join("templates", "models", "model.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "models", "model.tmpl")
 			outputPath = filepath.Join("models", fmt.Sprintf("%s.go", lowerName))
 		case "repository":
-			templatePath = filepath.Join("templates", "repository", "repository.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "repository", "repository.tmpl")
 			outputPath = filepath.Join("repository", fmt.Sprintf("%s_repository.go", lowerName))
 		case "service":
-			templatePath = filepath.Join("templates", "service", "service.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "service", "service.tmpl")
 			outputPath = filepath.Join("service", fmt.Sprintf("%s_service.go", lowerName))
 		case "interface":
-			templatePath = filepath.Join("templates", "interface", "interface.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "interface", "interface.tmpl")
 			outputPath = filepath.Join("interfaces", fmt.Sprintf("%s_interface.go", lowerName))
 		case "handler":
-			templatePath = filepath.Join("templates", "handler", "handler.tmpl")
+			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.4.0", "template", "handler", "handler.tmpl")
 			outputPath = filepath.Join("handlers", fmt.Sprintf("%s_handler.go", lowerName))
 		default:
 			fmt.Println("Invalid type. Must be one of: model, repository, service, interface, handler")
