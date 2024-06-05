@@ -1,32 +1,62 @@
 package service
 
 import (
-    "{{.PackagePath}}/models"
-    "{{.PackagePath}}/interfaces"
+	"context"
+	"net/http"
+
+	"github.com/jackc/pgx/v4"
+	command "github.com/julhan07/go-kampasi-command"
+	"{{.PackagePath}}/interfaces"
+	"{{.PackagePath}}/models"
 )
 
 type {{.Name}}Service struct {
-    repo interfaces.{{.Name}}Repository
+	repo interfaces.{{.Name}}Repository
 }
 
 func New{{.Name}}Service(repo interfaces.{{.Name}}Repository) interfaces.{{.Name}}Service {
-    return &{{.Name}}Service{
-        repo: repo,
-    }
+	return &{{.Name}}Service{
+		repo: repo,
+	}
 }
 
-func (s *{{.Name}}Service) Create{{.Name}}({{.LowerName}} *models.{{.Name}}) error {
-    return s.repo.Create({{.LowerName}})
+func (s *{{.Name}}Service) Create(ctx context.Context, {{.LowerName}} *models.{{.Name}}, tx pgx.Tx) *command.Response {
+	res, err := s.repo.Create(ctx, {{.LowerName}}, tx)
+	if err != nil {
+		return command.NewErrorResponse(http.StatusBadGateway, err.Error())
+	}
+	return command.NewSuccessResponse(http.StatusCreated, res)
 }
 
-func (s *{{.Name}}Service) Get{{.Name}}ByID(id uint) (*models.{{.Name}}, error) {
-    return s.repo.FindByID(id)
+func (s *{{.Name}}Service) FindAll(ctx context.Context) *command.Response {
+	res, err := s.repo.FindAll(ctx)
+	if err != nil {
+		return command.NewErrorResponse(http.StatusBadGateway, err.Error())
+	}
+	return command.NewSuccessResponse(http.StatusOK, res)
 }
 
-func (s *{{.Name}}Service) Update{{.Name}}({{.LowerName}} *models.{{.Name}}) error {
-    return s.repo.Update({{.LowerName}})
+func (s *{{.Name}}Service) GetByID(cxt context.Context, id uint) *command.Response {
+	res, err := s.repo.FindByID(cxt, id)
+	if err != nil {
+		return command.NewErrorResponse(http.StatusBadGateway, err.Error())
+	}
+	return command.NewSuccessResponse(http.StatusOK, res)
 }
 
-func (s *{{.Name}}Service) Delete{{.Name}}(id uint) error {
-    return s.repo.Delete(id)
+func (s *{{.Name}}Service) Update(ctx context.Context, {{.LowerName}} *models.{{.Name}}, tx pgx.Tx) *command.Response {
+	res, err := s.repo.Update(ctx, {{.LowerName}})
+	if err != nil {
+		return command.NewErrorResponse(http.StatusBadGateway, err.Error())
+	}
+	return command.NewSuccessResponse(http.StatusOK, res)
+
+}
+
+func (s *{{.Name}}Service) Delete(ctx context.Context, id uint) *command.Response {
+	res, err := s.repo.Delete(ctx, id)
+	if err != nil {
+		return command.NewErrorResponse(http.StatusBadGateway, err.Error())
+	}
+	return command.NewSuccessResponse(http.StatusOK, res)
 }

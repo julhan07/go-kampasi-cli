@@ -1,27 +1,34 @@
 package interfaces
 
 import (
-    "{{.PackagePath}}/models"
-   "github.com/gofiber/fiber/v2"
+	"context"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v4"
+	command "github.com/julhan07/go-kampasi-command"
+	"{{.PackagePath}}/models"
 )
 
 type {{.Name}}Repository interface {
-    Create({{.LowerName}} *models.{{.Name}}) error
-    FindByID(id uint) (*models.{{.Name}}, error)
-    Update({{.LowerName}} *models.{{.Name}}) error
-    Delete(id uint) error
+	Create(ctx context.Context, {{.LowerName}} *models.{{.Name}}, tx pgx.Tx) (res int, err error)
+	FindAll(ctx context.Context) (res []models.{{.Name}}, err error)
+	FindByID(ctx context.Context, id uint) (res models.{{.Name}}, err error)
+	Update(ctx context.Context, {{.LowerName}} *models.{{.Name}}) (res int, err error)
+	Delete(ctx context.Context, id uint) (res int, err error)
 }
 
 type {{.Name}}Service interface {
-    Create{{.Name}}({{.LowerName}} *models.{{.Name}}) error
-    Get{{.Name}}ByID(id uint) (*models.{{.Name}}, error)
-    Update{{.Name}}({{.LowerName}} *models.{{.Name}}) error
-    Delete{{.Name}}(id uint) error
+	Create(ctx context.Context, {{.LowerName}} *models.{{.Name}}, tx pgx.Tx) *command.Response
+	FindAll(ctx context.Context) *command.Response
+	GetByID(cxt context.Context, id uint) *command.Response
+	Update(ctx context.Context, {{.LowerName}} *models.{{.Name}}, tx pgx.Tx) *command.Response
+	Delete(ctx context.Context, id uint) *command.Response
 }
 
 type {{.Name}}Handler interface {
-    Create(c *fiber.Ctx) error
-    GetByID(c *fiber.Ctx) error
-    Update(c *fiber.Ctx) error
-    Delete(c *fiber.Ctx) error
+	Create(c *fiber.Ctx) error
+	FindAll(c *fiber.Ctx) error
+	GetByID(c *fiber.Ctx) error
+	Update(c *fiber.Ctx) error
+	Delete(c *fiber.Ctx) error
 }

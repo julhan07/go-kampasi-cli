@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"fmt"
@@ -15,8 +15,8 @@ Fiber application efficiently. You can use it to generate models,
 repositories, services, interfaces, and handlers.`,
 }
 
-func Execute(app func()) {
-	generatorExecute()
+func Execute(app func(), pkgPath string) {
+	generatorExecute(pkgPath)
 	executeServer(app)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

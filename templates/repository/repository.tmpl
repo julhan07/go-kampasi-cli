@@ -1,34 +1,67 @@
 package repository
 
 import (
-    "{{.PackagePath}}/models"
-    "{{.PackagePath}}/interfaces"
+	"context"
+	"time"
+	
+	"github.com/jackc/pgx/v4"
+	"{{.PackagePath}}/interfaces"
+	"{{.PackagePath}}/models"
+
+	pgxConn "github.com/julhan07/infrastructure-be/pgx"
 )
 
 type {{.Name}}Repository struct {
-    // Tambahkan koneksi database atau dependency lainnya
+	pgx   pgxConn.Pgx
+	model *models.{{.Name}}
 }
 
-func New{{.Name}}Repository() interfaces.{{.Name}}Repository {
-    return &{{.Name}}Repository{}
+func New{{.Name}}Repository(pgx pgxConn.Pgx, model *models.{{.Name}}) interfaces.{{.Name}}Repository {
+	return &{{.Name}}Repository{pgx, model}
 }
 
-func (repo *{{.Name}}Repository) Create({{.LowerName}} *models.{{.Name}}) error {
-    // Implementasi untuk membuat record
-    return nil
+func (repo *{{.Name}}Repository) scan(row pgx.Row) (res models.{{.Name}}, err error) {
+	if err = row.Scan(&res.ID,{{- range .ModelField}} &res.{{.Name}}, {{- end}} &res.CreatedAt, &res.UpdatedAt); err != nil {
+		return res, err
+	}
+	return res, err
 }
 
-func (repo *{{.Name}}Repository) FindByID(id uint) (*models.{{.Name}}, error) {
-    // Implementasi untuk menemukan record berdasarkan ID
-    return nil, nil
+func (repo *{{.Name}}Repository) Create(ctx context.Context, {{.LowerName}} *models.{{.Name}}, tx pgx.Tx) (res int, err error) {
+	err = repo.pgx.QueryRow(ctx, tx, repo.model.QueryInsert(),{{- range .ModelField}}{{$.LowerName}}.{{.Name}},{{- end}}).Scan(&res)
+	return
 }
 
-func (repo *{{.Name}}Repository) Update({{.LowerName}} *models.{{.Name}}) error {
-    // Implementasi untuk mengupdate record
-    return nil
+func (repo *{{.Name}}Repository) FindAll(ctx context.Context) (res []models.{{.Name}}, err error) {
+	rows, err := repo.pgx.QueryRows(ctx, nil, repo.model.QueryGetAll())
+	if err != nil {
+		return res, err
+	}
+	for rows.Next() {
+		{{.LowerName}}, err := repo.scan(rows)
+		if err != nil {
+			return res, err
+		}
+		res = append(res, {{.LowerName}})
+	}
+	return
 }
 
-func (repo *{{.Name}}Repository) Delete(id uint) error {
-    // Implementasi untuk menghapus record
-    return nil
+func (repo *{{.Name}}Repository) FindByID(ctx context.Context, id uint) (res models.{{.Name}}, err error) {
+	row := repo.pgx.QueryRow(ctx, nil, repo.model.QueryGetByID(), id)
+	return repo.scan(row)
+}
+
+func (repo *{{.Name}}Repository) Update(ctx context.Context, {{.LowerName}} *models.{{.Name}}) (res int, err error) {
+	if err = repo.pgx.QueryRow(ctx, nil, repo.model.QueryUpdate(), {{- range .ModelField}}{{$.LowerName}}.{{.Name}},{{- end}}  time.Now().Unix(), {{.LowerName}}.ID).Scan(&res); err != nil {
+		return 0, err
+	}
+	return
+}
+
+func (repo *{{.Name}}Repository) Delete(ctx context.Context, id uint) (res int, err error) {
+	if err = repo.pgx.QueryRow(ctx, nil, repo.model.QueryDelete(), id).Scan(&res); err != nil {
+		return 0, err
+	}
+	return
 }

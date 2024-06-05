@@ -1,7 +1,8 @@
-package cmd
+package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,10 +12,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type ModelField struct {
+	Name     string
+	Type     string
+	JsonTag  string
+	Validate string
+}
+
+type SQLField struct {
+	Name        string
+	Type        string
+	Constraints string
+}
 type TemplateData struct {
 	Name        string
+	TableName   string
 	LowerName   string
 	PackagePath string
+	ModelField  []ModelField
+	SQLField    []SQLField
+	Routers     []string
+	Add         func(int, int) int
 }
 
 func getGOPATH() (string, error) {
@@ -26,8 +44,15 @@ func getGOPATH() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
+func add(a, b int) int {
+	return a + b
+}
 func generateFile(templatePath, outputPath string, data TemplateData) error {
-	tmpl, err := template.ParseFiles(templatePath)
+	funcMap := template.FuncMap{
+		"add": add,
+	}
+
+	tmpl, err := template.New(filepath.Base(templatePath)).Funcs(funcMap).ParseFiles(templatePath)
 	if err != nil {
 		return err
 	}
@@ -53,19 +78,27 @@ var generateCmd = &cobra.Command{
 	Long: `Generate boilerplate code for different components of your application,
 including models, repositories, services, interfaces, and handlers.`,
 	Args: cobra.MinimumNArgs(2),
-	Run: func(cmd *cobra.Command, args []string) {
+}
+
+func generatorExecute(packagePath string) {
+	generateCmd.Run = func(cmd *cobra.Command, args []string) {
 		typeName := args[0]
 		name := args[1]
-		packagePath := "api-generator"
 		var lowerName = strings.ToLower(name)
 
 		data := TemplateData{
 			Name:        name,
+			TableName:   fmt.Sprintf("tb_%s", lowerName),
 			PackagePath: packagePath,
 			LowerName:   lowerName,
 		}
 
-		var templatePath, outputPath string
+		templatePath := []string{
+			filepath.Join("templates", "routes", "root.tmpl"),
+		}
+		outputPath := []string{
+			filepath.Join("routes", "root.go"),
+		}
 		gopath, err := getGOPATH()
 		if err != nil {
 			fmt.Println("Error getting GOPATH:", err)
@@ -77,38 +110,133 @@ including models, repositories, services, interfaces, and handlers.`,
 			return
 		}
 
+		modelPath := filepath.Join("templates", "models", "model.tmpl")
+		repoPath := filepath.Join("templates", "repository", "repository.tmpl")
+		servicePath := filepath.Join("templates", "service", "service.tmpl")
+		interfacePath := filepath.Join("templates", "interface", "interface.tmpl")
+		handlerPath := filepath.Join("templates", "handler", "handler.tmpl")
+		routesPath := filepath.Join("templates", "routes", "routes.tmpl")
+		sqlPath := filepath.Join("templates", "sql", "table.tmpl")
+
+		modelOutput := filepath.Join("models", fmt.Sprintf("%s.go", lowerName))
+		repoOutput := filepath.Join("repository", fmt.Sprintf("%s_repository.go", lowerName))
+		serviceOutput := filepath.Join("service", fmt.Sprintf("%s_service.go", lowerName))
+		interfaceOutput := filepath.Join("interfaces", fmt.Sprintf("%s_interface.go", lowerName))
+		handlerOutput := filepath.Join("handlers", fmt.Sprintf("%s_handler.go", lowerName))
+		routesOutput := filepath.Join("routes", fmt.Sprintf("%s_routes.go", lowerName))
+		sqlOutput := filepath.Join("sql", fmt.Sprintf("%s_table.sql", lowerName))
+
+		fields := []ModelField{}
+
+		for _, arg := range os.Args[4:] {
+			fieldParts := strings.Split(arg, ":")
+			if len(fieldParts) < 2 {
+				log.Fatalf("Invalid field format. Expected FieldName:FieldType,Validate")
+			}
+
+			name := fieldParts[0]
+			typeAndValidation := strings.Split(fieldParts[1], ",")
+			if len(typeAndValidation) == 0 {
+				log.Fatalf("Invalid field format. Expected FieldType,Validate")
+			}
+
+			fieldType := typeAndValidation[0]
+			var validate string
+			if len(typeAndValidation) == 2 {
+				validate = typeAndValidation[1]
+			}
+
+			fields = append(fields, ModelField{
+				Name:     name,
+				Type:     fieldType,
+				JsonTag:  strings.ToLower(name),
+				Validate: validate,
+			})
+		}
+
+		data.ModelField = fields
 		switch typeName {
 		case "model":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "models", "model.tmpl")
-			outputPath = filepath.Join("models", fmt.Sprintf("%s.go", lowerName))
+			templatePath = append(templatePath, modelPath)
+			outputPath = append(outputPath, modelOutput)
 		case "repository":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "repository", "repository.tmpl")
-			outputPath = filepath.Join("repository", fmt.Sprintf("%s_repository.go", lowerName))
+			templatePath = append(templatePath, repoPath)
+			outputPath = append(outputPath, repoOutput)
 		case "service":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "service", "service.tmpl")
-			outputPath = filepath.Join("service", fmt.Sprintf("%s_service.go", lowerName))
+			templatePath = append(templatePath, servicePath)
+			outputPath = append(outputPath, serviceOutput)
 		case "interface":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "interface", "interface.tmpl")
-			outputPath = filepath.Join("interfaces", fmt.Sprintf("%s_interface.go", lowerName))
+			templatePath = append(templatePath, interfacePath)
+			outputPath = append(outputPath, interfaceOutput)
 		case "handler":
-			templatePath = filepath.Join(gopath, "pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.7.0", "templates", "handler", "handler.tmpl")
-			outputPath = filepath.Join("handlers", fmt.Sprintf("%s_handler.go", lowerName))
+			templatePath = append(templatePath, handlerPath)
+			outputPath = append(outputPath, handlerOutput)
+		case "router":
+			templatePath = append(templatePath, routesPath)
+			outputPath = append(outputPath, routesOutput)
+		case "sql":
+			templatePath = append(templatePath, sqlPath)
+			outputPath = append(outputPath, sqlOutput)
+			data.SQLField = generateSQLFields(data.ModelField)
+		case "api":
+			templatePath = append(templatePath, modelPath, repoPath, servicePath, interfacePath, handlerPath, routesPath, sqlPath)
+			outputPath = append(outputPath, modelOutput, repoOutput, serviceOutput, interfaceOutput, handlerOutput, routesOutput, sqlOutput)
+			data.SQLField = generateSQLFields(data.ModelField)
 		default:
 			fmt.Println("Invalid type. Must be one of: model, repository, service, interface, handler")
 			return
 		}
 
-		fmt.Println("output", outputPath)
-		fmt.Println("data name", data.Name)
-
-		if err := generateFile(templatePath, outputPath, data); err != nil {
-			fmt.Println("Error generating file:", err)
-		} else {
-			fmt.Printf("Successfully generated %s at %s\n", typeName, outputPath)
+		for i := 0; i < len(templatePath); i++ {
+			fmt.Println("output", outputPath[i])
+			if err := generateFile(templatePath[i], outputPath[i], data); err != nil {
+				fmt.Println("Error generating file:", err)
+			} else {
+				fmt.Printf("Successfully generated %s at %s\n", typeName, outputPath[i])
+			}
 		}
-	},
+
+	}
+
+	rootCmd.AddCommand(generateCmd)
 }
 
-func generatorExecute() {
-	rootCmd.AddCommand(generateCmd)
+func goTypeToSQLType(goType string) string {
+	switch goType {
+	case "int", "int32", "int64", "uint", "uint32", "uint64":
+		return "INTEGER"
+	case "float32", "float64":
+		return "REAL"
+	case "string":
+		return "TEXT"
+	case "time.Time":
+		return "TIMESTAMP"
+	default:
+		return "TEXT" // Default to TEXT if type is unknown
+	}
+}
+
+func parseValidationTags(tags string) string {
+	constraints := []string{}
+	for _, tag := range strings.Split(tags, ",") {
+		switch tag {
+		case "required":
+			constraints = append(constraints, "NOT NULL")
+		case "email":
+			// You can add custom constraints or leave it for application logic
+		}
+	}
+	return strings.Join(constraints, " ")
+}
+
+func generateSQLFields(modelFields []ModelField) []SQLField {
+	var sqlFields []SQLField
+	for _, field := range modelFields {
+		sqlFields = append(sqlFields, SQLField{
+			Name:        strings.ToLower(field.Name),
+			Type:        goTypeToSQLType(field.Type),
+			Constraints: parseValidationTags(field.Validate),
+		})
+	}
+	return sqlFields
 }
