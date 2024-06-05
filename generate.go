@@ -110,13 +110,14 @@ func generatorExecute(packagePath string) {
 			return
 		}
 
-		modelPath := filepath.Join("templates", "models", "model.tmpl")
-		repoPath := filepath.Join("templates", "repository", "repository.tmpl")
-		servicePath := filepath.Join("templates", "service", "service.tmpl")
-		interfacePath := filepath.Join("templates", "interface", "interface.tmpl")
-		handlerPath := filepath.Join("templates", "handler", "handler.tmpl")
-		routesPath := filepath.Join("templates", "routes", "routes.tmpl")
-		sqlPath := filepath.Join("templates", "sql", "table.tmpl")
+		basePath := filepath.Join("pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.8.0", "templates")
+		modelPath := filepath.Join(gopath, basePath, "models", "model.tmpl")
+		repoPath := filepath.Join(gopath, basePath, "repository", "repository.tmpl")
+		servicePath := filepath.Join(gopath, basePath, "service", "service.tmpl")
+		interfacePath := filepath.Join(gopath, basePath, "interface", "interface.tmpl")
+		handlerPath := filepath.Join(gopath, basePath, "handler", "handler.tmpl")
+		routesPath := filepath.Join(gopath, basePath, "routes", "routes.tmpl")
+		sqlPath := filepath.Join(gopath, basePath, "sql", "table.tmpl")
 
 		modelOutput := filepath.Join("models", fmt.Sprintf("%s.go", lowerName))
 		repoOutput := filepath.Join("repository", fmt.Sprintf("%s_repository.go", lowerName))
