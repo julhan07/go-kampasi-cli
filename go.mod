@@ -4,9 +4,7 @@ go 1.22.2
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.4
-	github.com/jackc/pgx/v4 v4.18.3
 	github.com/julhan07/go-config v1.0.0
-	github.com/julhan07/go-kampasi-command v1.1.0
 	github.com/julhan07/infrastructure-be v1.0.0
 	github.com/spf13/cobra v1.8.0
 )
@@ -24,6 +22,7 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
+	github.com/jackc/pgx/v4 v4.18.3 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
