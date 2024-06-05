@@ -93,16 +93,18 @@ func generatorExecute(packagePath string) {
 			LowerName:   lowerName,
 		}
 
-		templatePath := []string{
-			filepath.Join("templates", "routes", "root.tmpl"),
-		}
-		outputPath := []string{
-			filepath.Join("routes", "root.go"),
-		}
 		gopath, err := getGOPATH()
 		if err != nil {
 			fmt.Println("Error getting GOPATH:", err)
 			return
+		}
+
+		basePath := filepath.Join("pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.11.0", "templates")
+		templatePath := []string{
+			filepath.Join(gopath, basePath, "routes", "root.tmpl"),
+		}
+		outputPath := []string{
+			filepath.Join("routes", "root.go"),
 		}
 
 		if gopath == "" {
@@ -110,7 +112,6 @@ func generatorExecute(packagePath string) {
 			return
 		}
 
-		basePath := filepath.Join("pkg", "mod", "github.com", "julhan07", "go-kampasi-cli@v1.8.0", "templates")
 		modelPath := filepath.Join(gopath, basePath, "models", "model.tmpl")
 		repoPath := filepath.Join(gopath, basePath, "repository", "repository.tmpl")
 		servicePath := filepath.Join(gopath, basePath, "service", "service.tmpl")
