@@ -15,8 +15,8 @@ Fiber application efficiently. You can use it to generate models,
 repositories, services, interfaces, and handlers.`,
 }
 
-func Execute(app func(), pkgPath string) {
-	generatorExecute(pkgPath)
+func Execute(app func(), pkgPath, template string) {
+	rootCmd.AddCommand(generatorExecute(pkgPath, template))
 	executeServer(app)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
